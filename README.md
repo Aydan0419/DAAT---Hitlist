@@ -71,6 +71,8 @@ For Google sign-in on a new machine, add that machine's debug SHA-1 fingerprint 
    ```
 4. For push notifications, upload an APNs key in Firebase console → Project settings → Cloud Messaging.
 
+No Mac? [`DAAT/iosApp/RELEASE.md`](DAAT/iosApp/RELEASE.md) explains how GitHub can build the app and send it to TestFlight.
+
 Running on a real iPhone needs an Apple Developer account ($99/year). The simulator works without one, but has no camera.
 
 ## Tests

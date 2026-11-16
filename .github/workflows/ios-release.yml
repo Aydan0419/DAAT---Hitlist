@@ -1,0 +1,94 @@
+name: iPhone release (TestFlight)
+
+# Builds the iPhone app, signs it and uploads it to TestFlight. No Mac needed.
+# Run it by hand: GitHub -> Actions -> "iPhone release (TestFlight)" -> Run workflow.
+#
+# It needs these repository secrets (Settings -> Secrets and variables -> Actions).
+# DAAT/iosApp/RELEASE.md explains where each one comes from.
+#   APPLE_TEAM_ID                 10-character Apple team id
+#   APP_STORE_CONNECT_KEY_ID      App Store Connect API key id
+#   APP_STORE_CONNECT_ISSUER_ID   App Store Connect API issuer id
+#   APP_STORE_CONNECT_KEY_BASE64  the .p8 key file, base64-encoded
+#   GOOGLE_SERVICE_INFO_BASE64    GoogleService-Info.plist, base64-encoded
+#   REVERSED_CLIENT_ID            the REVERSED_CLIENT_ID value from that plist
+
+on:
+  workflow_dispatch:
+
+jobs:
+  testflight:
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: DAAT
+    env:
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      REVERSED_CLIENT_ID: ${{ secrets.REVERSED_CLIENT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check that the secrets are set
+        env:
+          KEY_B64: ${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}
+          PLIST_B64: ${{ secrets.GOOGLE_SERVICE_INFO_BASE64 }}
+        run: |
+          missing=0
+          for v in APPLE_TEAM_ID KEY_ID ISSUER_ID REVERSED_CLIENT_ID KEY_B64 PLIST_B64; do
+            if [ -z "${!v}" ]; then echo "::error::Missing secret for $v (see DAAT/iosApp/RELEASE.md)"; missing=1; fi
+          done
+          exit $missing
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Write the signing key and Firebase config
+        env:
+          KEY_B64: ${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}
+          PLIST_B64: ${{ secrets.GOOGLE_SERVICE_INFO_BASE64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          echo "$KEY_B64" | base64 --decode > "$RUNNER_TEMP/keys/AuthKey_${KEY_ID}.p8"
+          echo "$PLIST_B64" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
+      - name: Generate the Xcode project
+        run: |
+          brew install xcodegen
+          cd iosApp && xcodegen generate
+      - name: Archive
+        run: |
+          cd iosApp
+          xcodebuild archive \
+            -project Hitlist.xcodeproj -scheme Hitlist -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Hitlist.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_${KEY_ID}.p8" \
+            -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER_ID" \
+            -skipPackagePluginValidation \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic \
+            REVERSED_CLIENT_ID="$REVERSED_CLIENT_ID" \
+            CURRENT_PROJECT_VERSION="${{ github.run_number }}" | tail -n 200
+          exit ${PIPESTATUS[0]}
+      - name: Upload to TestFlight
+        run: |
+          cat > "$RUNNER_TEMP/export.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Hitlist.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/export.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_${KEY_ID}.p8" \
+            -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER_ID"
+      - name: Remove the signing key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"

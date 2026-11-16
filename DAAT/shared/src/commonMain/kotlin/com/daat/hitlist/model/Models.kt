@@ -40,7 +40,7 @@ data class QuietHours(val startMinute: Int = 0, val endMinute: Int = 0)
 data class GroupSettings(
     val reshuffleHour: Int = 8,
     val timezone: String = "America/Chicago",
-    val maxSnipesPerDay: Int = 3,
+    val maxSnipesPerDay: Int = 1,
     val immunityMinutes: Int = 60,
     val snipedPenalty: Int = 0,
     val hintEnabled: Boolean = true,

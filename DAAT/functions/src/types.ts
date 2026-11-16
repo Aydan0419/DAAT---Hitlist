@@ -35,7 +35,8 @@ export interface GroupSettings {
 export const DEFAULT_SETTINGS: GroupSettings = {
   reshuffleHour: 8,
   timezone: "America/Chicago",
-  maxSnipesPerDay: 3,
+  // 1 keeps the game strictly one hunter per target: after a snipe the hunter waits for the next reshuffle.
+  maxSnipesPerDay: 1,
   immunityMinutes: 60,
   snipedPenalty: 0,
   hintEnabled: true,

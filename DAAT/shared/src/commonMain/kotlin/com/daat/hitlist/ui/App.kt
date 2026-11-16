@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -51,7 +52,10 @@ import com.daat.hitlist.ui.screens.ProfileScreen
 import com.daat.hitlist.ui.screens.RegistrationScreen
 import com.daat.hitlist.ui.screens.SignInScreen
 import com.daat.hitlist.ui.screens.SnipeFlow
+import com.daat.hitlist.ui.theme.Cream
 import com.daat.hitlist.ui.theme.HitlistTheme
+import com.daat.hitlist.ui.theme.Ink
+import com.daat.hitlist.ui.theme.Sun
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -144,13 +148,20 @@ private fun Main(vm: AppViewModel) {
         Overlay.None -> Scaffold(
             snackbarHost = { SnackbarHost(snackbar) },
             bottomBar = {
-                NavigationBar {
+                NavigationBar(containerColor = Ink, contentColor = Cream) {
                     Tab.entries.forEach { t ->
                         NavigationBarItem(
                             selected = tab == t,
                             onClick = { tab = t },
                             icon = { Icon(t.icon, contentDescription = null) },
                             label = { Text(t.label) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Ink,
+                                selectedTextColor = Sun,
+                                indicatorColor = Sun,
+                                unselectedIconColor = Cream.copy(alpha = 0.7f),
+                                unselectedTextColor = Cream.copy(alpha = 0.7f),
+                            ),
                         )
                     }
                 }

@@ -228,16 +228,21 @@ describe("planAward", () => {
     expect(award({ group: g, target: member("target", { score: 20 }) }).target!.score).toBe(0);
   });
 
-  it("gives the hunter a new target who isn't themselves or the one just sniped", () => {
+  it("by default gives no new target after a snipe, so each player has one hunter", () => {
+    expect(award().nextTargetUid).toBeNull();
+  });
+
+  it("with a higher daily limit, gives a new target who isn't the hunter or the one just sniped", () => {
     for (const r of [0, 0.3, 0.6, 0.999]) {
-      const next = award({ rng: () => r }).nextTargetUid;
+      const next = award({ group: group({}, { maxSnipesPerDay: 3 }), rng: () => r }).nextTargetUid;
       expect(["other", "fourth"]).toContain(next);
     }
   });
 
   it("gives no new target once the daily limit is reached", () => {
-    expect(award({ hunter: member("hunter", { snipesToday: 2 }) }).nextTargetUid).toBeNull();
-    expect(award({ hunter: member("hunter", { snipesToday: 1 }) }).nextTargetUid).not.toBeNull();
+    const g = group({}, { maxSnipesPerDay: 3 });
+    expect(award({ group: g, hunter: member("hunter", { snipesToday: 2 }) }).nextTargetUid).toBeNull();
+    expect(award({ group: g, hunter: member("hunter", { snipesToday: 1 }) }).nextTargetUid).not.toBeNull();
   });
 
   it("still credits the hunter if the target has left the group", () => {

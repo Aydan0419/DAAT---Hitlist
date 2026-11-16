@@ -143,7 +143,7 @@ fun GroupAdminScreen(vm: AppViewModel, location: LocationProvider, onClose: () -
                     Stepper("Daily reshuffle", minuteLabel(draft.reshuffleHour * 60), "Everyone gets a new target at this time") {
                         draft = draft.copy(reshuffleHour = (draft.reshuffleHour + it + 24) % 24)
                     }
-                    Stepper("Snipes per day", draft.maxSnipesPerDay.toString(), "How many targets one player can take down in a day") {
+                    Stepper("Snipes per day", draft.maxSnipesPerDay.toString(), "At 1, everyone has exactly one hunter. Higher gives a new target after each snipe, so someone can be hunted by two") {
                         draft = draft.copy(maxSnipesPerDay = (draft.maxSnipesPerDay + it).coerceIn(1, 20))
                     }
                     Stepper("Immunity after being sniped", "${draft.immunityMinutes} min", "0 turns it off") {

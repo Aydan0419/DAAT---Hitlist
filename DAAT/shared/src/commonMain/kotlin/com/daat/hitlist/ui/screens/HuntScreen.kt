@@ -152,7 +152,11 @@ private fun TargetCard(state: HuntState, now: Long, onShoot: () -> Unit, modifie
             val limitHit = (state.me?.let { if (it.snipeDayId == group.dayId) it.snipesToday else 0 } ?: 0) >=
                 group.settings.maxSnipesPerDay
             Text(
-                if (limitHit) "You've hit today's limit" else "No target right now",
+                when {
+                    limitHit && group.settings.maxSnipesPerDay == 1 -> "Target down"
+                    limitHit -> "You've hit today's limit"
+                    else -> "No target right now"
+                },
                 style = MaterialTheme.typography.titleLarge,
             )
             Spacer(Modifier.height(6.dp))

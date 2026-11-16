@@ -9,7 +9,7 @@ struct HitlistApp: App {
         WindowGroup {
             ComposeView()
                 .ignoresSafeArea()
-                .preferredColorScheme(.dark)
+                .preferredColorScheme(.light)
         }
     }
 }

@@ -38,6 +38,7 @@ import com.daat.hitlist.platform.supportsAppleSignIn
 import com.daat.hitlist.ui.AppViewModel
 import com.daat.hitlist.ui.components.Crosshair
 import com.daat.hitlist.ui.components.PrimaryButton
+import com.daat.hitlist.ui.theme.AutumnBrush
 
 @Composable
 fun SignInScreen(vm: AppViewModel) {
@@ -52,7 +53,7 @@ fun SignInScreen(vm: AppViewModel) {
     ) {
         Crosshair(Modifier.size(112.dp))
         Spacer(Modifier.height(24.dp))
-        Text("HITLIST", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.primary)
+        Text("HITLIST", style = MaterialTheme.typography.displaySmall.copy(brush = AutumnBrush))
         Spacer(Modifier.height(8.dp))
         Text(
             "Everyone gets a target.\nEveryone is hunted.",

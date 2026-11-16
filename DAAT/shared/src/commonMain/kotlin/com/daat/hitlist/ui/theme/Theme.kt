@@ -2,44 +2,63 @@ package com.daat.hitlist.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-val Red = Color(0xFFE53935)
-val RedDeep = Color(0xFF9A0007)
-val Ink = Color(0xFF0E0E10)
-val Panel = Color(0xFF1A1A1E)
-val PanelHigh = Color(0xFF26262C)
-val Mist = Color(0xFFB4B4BC)
-val Gold = Color(0xFFFFC53D)
-val Green = Color(0xFF3DDC84)
+// Fall palette: bright, warm surfaces with green, gold, orange and yellow, a hint of
+// red, and near-black for text and the navigation bar.
+val Cream = Color(0xFFFFF8E7)
+val Ink = Color(0xFF17130D)
+val Leaf = Color(0xFF1B7F3B)
+val Pumpkin = Color(0xFFF57C00)
+val Sun = Color(0xFFFFC928)
+val Maple = Color(0xFFC62828)
 
-private val Colors = darkColorScheme(
-    primary = Red,
+/** Accent colours that are used as text on light cards, so they are the darker tones. */
+val Green = Leaf
+val Gold = Color(0xFFB45F00)
+
+val Panel = Color.White
+val PanelHigh = Color(0xFFFFE7B0)
+val Mist = Color(0xFF5E5646)
+
+/** Green into gold into orange into red: used sparingly, for the logo and highlights. */
+val AutumnBrush = Brush.horizontalGradient(listOf(Leaf, Color(0xFFE0A800), Pumpkin, Maple))
+
+private val Colors = lightColorScheme(
+    primary = Leaf,
     onPrimary = Color.White,
-    primaryContainer = RedDeep,
-    onPrimaryContainer = Color.White,
-    secondary = Gold,
+    primaryContainer = Ink,
+    onPrimaryContainer = Sun,
+    secondary = Pumpkin,
     onSecondary = Ink,
-    tertiary = Green,
+    secondaryContainer = Sun,
+    onSecondaryContainer = Ink,
+    tertiary = Sun,
     onTertiary = Ink,
-    background = Ink,
-    onBackground = Color.White,
-    surface = Ink,
-    onSurface = Color.White,
-    surfaceVariant = Panel,
+    background = Cream,
+    onBackground = Ink,
+    surface = Cream,
+    onSurface = Ink,
+    surfaceVariant = Color(0xFFF6EBCF),
     onSurfaceVariant = Mist,
+    surfaceContainerLowest = Color.White,
+    surfaceContainerLow = Color.White,
     surfaceContainer = Panel,
-    surfaceContainerHigh = PanelHigh,
+    surfaceContainerHigh = Color(0xFFFFF1CF),
     surfaceContainerHighest = PanelHigh,
-    surfaceContainerLow = Panel,
-    outline = Color(0xFF3A3A42),
-    outlineVariant = Color(0xFF2A2A30),
-    error = Color(0xFFFF6B6B),
+    inverseSurface = Ink,
+    inverseOnSurface = Cream,
+    inversePrimary = Sun,
+    outline = Color(0xFFBFAF88),
+    outlineVariant = Color(0xFFE8DCBD),
+    error = Maple,
+    onError = Color.White,
 )
 
 private val Type = Typography().run {
@@ -52,7 +71,7 @@ private val Type = Typography().run {
     )
 }
 
-/** Hitlist is always dark: it reads better outdoors at night and saves battery on OLED screens. */
+/** Hitlist uses one bright, warm theme on every phone, with a dark navigation bar. */
 @Composable
 fun HitlistTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = Colors, typography = Type, content = content)

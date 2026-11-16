@@ -16,7 +16,7 @@ Branch `hitlist-v1`, built against [`HITLIST_SPEC.md`](../HITLIST_SPEC.md).
 
 ## Built
 
-- Server-only scoring, target assignment (one cycle per group, daily reshuffle, repair on join/leave), snipe verification with accuracy-scaled tolerances, immunity, streak reset, daily snipe cap, safe zones, disputes, weekly board reset, account deletion, push notifications.
+- Server-only scoring, target assignment (one cycle per group, daily reshuffle, repair on join/leave), snipe verification with accuracy-scaled tolerances, immunity, streak reset, one snipe per day by default (so each player has exactly one hunter), safe zones, disputes, weekly board reset, account deletion, push notifications.
 - Fresh-location flow: a silent push asks the target's phone for a new fix; if none arrives in 20 seconds the snipe goes to "pending" for the target to confirm or dispute.
 - Write-only locations; hunters get a distance band and 8-point direction from the server.
 - Shared UI: onboarding with 13+ confirmation, hunt, camera and result, per-group feed that loads 20 at a time (like, report, block), leaderboards, profile, group admin with game settings.
@@ -35,5 +35,6 @@ Branch `hitlist-v1`, built against [`HITLIST_SPEC.md`](../HITLIST_SPEC.md).
 
 - Android Baseline Profile (needs a device or emulator to record).
 - Feed shows full-size compressed photos (about 1080 px); no separate thumbnails.
-- App icon is the original placeholder.
+- The iPhone TestFlight workflow has not been run (needs an Apple Developer account). See `iosApp/RELEASE.md`.
+- The new colours and icon compile but have not been looked at on a phone yet.
 - Cold-start time and download size have not been measured.

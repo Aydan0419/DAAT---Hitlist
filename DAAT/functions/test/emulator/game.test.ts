@@ -90,7 +90,7 @@ describe("groups and targets", () => {
 
   it("only the admin can change settings", async () => {
     expect(await code(run(fn.updateGroup, "u2", { groupId: gid, settings: { immunityMinutes: 5 } }))).toBe("NOT_ADMIN");
-    await run(fn.updateGroup, "u1", { groupId: gid, settings: { immunityMinutes: 30 } });
+    await run(fn.updateGroup, "u1", { groupId: gid, settings: { immunityMinutes: 30, maxSnipesPerDay: 3 } });
     expect(((await groupRef(gid).get()).data() as GroupDoc).settings.immunityMinutes).toBe(30);
   });
 });
