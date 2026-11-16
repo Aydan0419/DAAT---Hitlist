@@ -17,6 +17,12 @@ service firebase.storage {
         && file.matches('[A-Za-z0-9_-]+\\.jpg')
         && request.resource.size <= 2 * 1024 * 1024
         && request.resource.contentType == 'image/jpeg';
+      // A short recorded "shot sound" that goes with the hunter's snipe.
+      allow create: if request.auth != null && request.auth.uid == uid
+        && isMember(gid)
+        && file.matches('[A-Za-z0-9_-]+\\.m4a')
+        && request.resource.size <= 300 * 1024
+        && request.resource.contentType == 'audio/mp4';
     }
 
     match /avatars/{uid}/{file} {

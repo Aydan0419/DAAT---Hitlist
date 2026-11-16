@@ -82,6 +82,8 @@ data class Member(
     val snipeDayId: String = "",
     val immuneUntil: Long = 0,
     val joinedAt: Long = 0,
+    /** The admin has turned off this player's shot sounds in this group. */
+    val soundMuted: Boolean = false,
 )
 
 @Immutable
@@ -127,6 +129,8 @@ data class Snipe(
     val capturedAt: Long = 0,
     val createdAt: Long = 0,
     val likedBy: List<String> = emptyList(),
+    /** The hunter's recorded shot sound, if they attached one. */
+    val soundPath: String? = null,
 )
 
 /** A location reading from the phone. */

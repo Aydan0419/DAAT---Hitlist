@@ -12,6 +12,7 @@ import {
   locationRef,
   memberRef,
   photoPath,
+  soundPath,
   reject,
   snipeRef,
   toFix,
@@ -30,9 +31,12 @@ import { AssignmentDoc, GroupDoc, LocationFix, MemberDoc, SnipeDoc } from "./typ
 
 const LOCATE_WAIT_MS = 20_000;
 
+/** Deletes a snipe's photo and the shot sound stored beside it. */
 async function deletePhoto(path: string): Promise<void> {
   try {
-    await getStorage().bucket().file(path).delete({ ignoreNotFound: true });
+    const bucket = getStorage().bucket();
+    await bucket.file(path).delete({ ignoreNotFound: true });
+    await bucket.file(path.replace(/\.jpg$/, ".m4a")).delete({ ignoreNotFound: true });
   } catch (e) {
     logger.warn("photo delete failed", { path, error: String(e) });
   }
@@ -151,6 +155,13 @@ export const submitSnipe = call({ timeoutSeconds: 60, memory: "512MiB" }, async 
     if (pre) reject(pre);
     const [photoExists] = await getStorage().bucket().file(path).exists();
     if (!photoExists) reject("PHOTO_MISSING");
+    // An optional recorded shot sound, uploaded next to the photo.
+    let sound: string | null = null;
+    if (data.hasSound === true && !(hunterSnap.data() as MemberDoc).soundMuted) {
+      const candidate = soundPath(gid, uid, sid);
+      const [soundExists] = await getStorage().bucket().file(candidate).exists();
+      if (soundExists) sound = candidate;
+    }
 
     const targetFix = await freshTargetFix(attempt.targetUid, gid);
     const now = Date.now();
@@ -181,6 +192,7 @@ export const submitSnipe = call({ timeoutSeconds: 60, memory: "512MiB" }, async 
         hunterName: hunter!.name,
         targetName: target!.name,
         photoPath: path,
+        soundPath: hunter!.soundMuted ? null : sound,
         status: verdict.outcome,
         points: 0,
         breakdown: null,
@@ -357,7 +369,7 @@ export const removeSnipe = call({}, async (uid, data) => {
     if (assignment?.pendingSnipeId === sid) {
       tx.update(assignmentRef(gid, snipe.hunterUid), { pendingSnipeId: null });
     }
-    tx.update(snipeRef(gid, sid), { status: "REMOVED", resolvedAt: Date.now(), photoPath: "" });
+    tx.update(snipeRef(gid, sid), { status: "REMOVED", resolvedAt: Date.now(), photoPath: "", soundPath: null });
     return snipe.photoPath;
   });
   if (path) await deletePhoto(path);

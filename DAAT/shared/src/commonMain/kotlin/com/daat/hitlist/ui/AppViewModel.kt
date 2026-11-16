@@ -198,6 +198,9 @@ class AppViewModel(private val repo: GameRepository) : ViewModel() {
     fun leaveGroup(id: String, onDone: () -> Unit = {}) = act("You left the group", onDone) { repo.leaveGroup(id) }
     fun renameGroup(id: String, name: String) = act("Group renamed") { repo.updateGroup(id, name = name.trim()) }
     fun saveSettings(id: String, settings: GroupSettings) = act("Settings saved") { repo.updateGroup(id, settings = settings) }
+    fun setSoundMuted(id: String, memberUid: String, muted: Boolean) =
+        act(if (muted) "Shot sound muted" else "Shot sound allowed") { repo.setSoundMuted(id, memberUid, muted) }
+
     fun kick(id: String, memberUid: String) = act("Player removed") { repo.kickMember(id, memberUid) }
     fun transferAdmin(id: String, memberUid: String, onDone: () -> Unit = {}) =
         act("Admin transferred", onDone) { repo.transferAdmin(id, memberUid) }
@@ -222,7 +225,7 @@ class AppViewModel(private val repo: GameRepository) : ViewModel() {
         }
     }
 
-    fun submitSnipe(photo: CapturedPhoto, fix: GeoFix?) {
+    fun submitSnipe(photo: CapturedPhoto, fix: GeoFix?, sound: ByteArray? = null) {
         val state = hunt.value
         val g = state.group
         val target = state.target
@@ -237,7 +240,7 @@ class AppViewModel(private val repo: GameRepository) : ViewModel() {
         _snipe.value = SnipeUi.Sending
         viewModelScope.launch {
             _snipe.value = try {
-                val result = repo.submitSnipe(g.id, target.uid, photo.jpeg, fix, photo.headingDeg, photo.capturedAt)
+                val result = repo.submitSnipe(g.id, target.uid, photo.jpeg, fix, photo.headingDeg, photo.capturedAt, sound)
                 SnipeUi.Done(result, target.name)
             } catch (e: CancellationException) {
                 throw e

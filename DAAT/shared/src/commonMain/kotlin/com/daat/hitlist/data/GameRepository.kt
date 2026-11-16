@@ -50,6 +50,8 @@ interface GameRepository {
         fix: GeoFix,
         headingDeg: Double,
         capturedAt: Long,
+        /** The hunter's recorded shot sound as an .m4a file, or null. */
+        sound: ByteArray? = null,
     ): SnipeResult
     suspend fun respondToSnipe(groupId: String, snipeId: String, accept: Boolean)
 
@@ -66,6 +68,7 @@ interface GameRepository {
     // Admin
     suspend fun updateGroup(groupId: String, name: String? = null, settings: GroupSettings? = null)
     suspend fun kickMember(groupId: String, memberUid: String)
+    suspend fun setSoundMuted(groupId: String, memberUid: String, muted: Boolean)
     suspend fun transferAdmin(groupId: String, memberUid: String)
     suspend fun regenerateInviteCode(groupId: String)
     suspend fun deleteGroup(groupId: String)

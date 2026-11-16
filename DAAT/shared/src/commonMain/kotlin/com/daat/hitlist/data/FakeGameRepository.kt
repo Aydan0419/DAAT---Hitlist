@@ -139,6 +139,7 @@ class FakeGameRepository(
         fix: GeoFix,
         headingDeg: Double,
         capturedAt: Long,
+        sound: ByteArray?,
     ): SnipeResult {
         val assignment = assignmentState.value[groupId] ?: throw GameException("NO_TARGET")
         if (assignment.targetUid != targetUid) throw GameException("NOT_YOUR_TARGET")
@@ -195,6 +196,10 @@ class FakeGameRepository(
             list.map { if (it.id == groupId) it.copy(memberIds = it.memberIds - memberUid) else it }
         }
         memberState.update { all -> all + (groupId to all[groupId].orEmpty().filterNot { it.uid == memberUid }) }
+    }
+
+    override suspend fun setSoundMuted(groupId: String, memberUid: String, muted: Boolean) {
+        updateMember(groupId, memberUid) { it.copy(soundMuted = muted) }
     }
 
     override suspend fun transferAdmin(groupId: String, memberUid: String) =

@@ -191,6 +191,20 @@ export const kickMember = call({}, async (uid, data) => {
   return { ok: true };
 });
 
+/** The admin stops (or allows again) a player's recorded shot sounds in this group. */
+export const setSoundMuted = call({}, async (uid, data) => {
+  const gid = id(data.groupId, "Group");
+  const target = id(data.memberUid, "Member");
+  const muted = data.muted === true;
+  await db.runTransaction(async (tx) => {
+    await requireAdmin(tx, gid, uid);
+    const member = await tx.get(memberRef(gid, target));
+    if (!member.exists) return reject("NOT_A_MEMBER");
+    tx.update(memberRef(gid, target), { soundMuted: muted });
+  });
+  return { ok: true };
+});
+
 export const updateGroup = call({}, async (uid, data) => {
   const gid = id(data.groupId, "Group");
   const now = Date.now();

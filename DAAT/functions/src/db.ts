@@ -24,6 +24,9 @@ export const snipeRef = (gid: string, sid: string) => snipesRef(gid).doc(sid);
 export const evidenceRef = (gid: string, sid: string) =>
   snipeRef(gid, sid).collection("private").doc("evidence");
 
+/** The hunter's recorded shot sound for a snipe, stored next to its photo. */
+export const soundPath = (gid: string, hunterUid: string, sid: string) =>
+  `snipes/${gid}/${hunterUid}/${sid}.m4a`;
 export const photoPath = (gid: string, hunterUid: string, sid: string) =>
   `snipes/${gid}/${hunterUid}/${sid}.jpg`;
 

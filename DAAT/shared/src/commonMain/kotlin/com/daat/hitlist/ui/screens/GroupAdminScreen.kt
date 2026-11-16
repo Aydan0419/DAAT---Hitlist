@@ -133,7 +133,13 @@ fun GroupAdminScreen(vm: AppViewModel, location: LocationProvider, onClose: () -
 
             item(key = "members-title") { Eyebrow("Players (${members.size})") }
             items(members, key = { "m-${it.uid}" }) { member ->
-                MemberRow(member, isMe = member.uid == me?.id, onKick = { kicking = member }, onPromote = { promoting = member })
+                MemberRow(
+                    member,
+                    isMe = member.uid == me?.id,
+                    onKick = { kicking = member },
+                    onPromote = { promoting = member },
+                    onToggleSound = { vm.setSoundMuted(g.id, member.uid, !member.soundMuted) },
+                )
             }
 
             item(key = "settings") {
@@ -246,7 +252,13 @@ fun GroupAdminScreen(vm: AppViewModel, location: LocationProvider, onClose: () -
 }
 
 @Composable
-private fun MemberRow(member: Member, isMe: Boolean, onKick: () -> Unit, onPromote: () -> Unit) {
+private fun MemberRow(
+    member: Member,
+    isMe: Boolean,
+    onKick: () -> Unit,
+    onPromote: () -> Unit,
+    onToggleSound: () -> Unit,
+) {
     var menu by remember { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Avatar(member.name, member.photoUrl, size = 40.dp)
@@ -260,6 +272,10 @@ private fun MemberRow(member: Member, isMe: Boolean, onKick: () -> Unit, onPromo
                 IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, contentDescription = "Options for ${member.name}") }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text("Make admin") }, onClick = { menu = false; onPromote() })
+                    DropdownMenuItem(
+                        text = { Text(if (member.soundMuted) "Allow shot sound" else "Mute shot sound") },
+                        onClick = { menu = false; onToggleSound() },
+                    )
                     DropdownMenuItem(text = { Text("Remove from group") }, onClick = { menu = false; onKick() })
                 }
             }

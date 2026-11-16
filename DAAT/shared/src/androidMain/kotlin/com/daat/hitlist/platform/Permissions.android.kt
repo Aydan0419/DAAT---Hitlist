@@ -45,3 +45,6 @@ actual fun rememberBackgroundPermissions(): PermissionState = rememberPermission
     },
     then = if (Build.VERSION.SDK_INT >= 29) listOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION) else emptyList(),
 )
+
+@Composable
+actual fun rememberMicPermission(): PermissionState = rememberPermissions(listOf(Manifest.permission.RECORD_AUDIO))

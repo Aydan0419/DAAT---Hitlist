@@ -26,11 +26,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -41,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.daat.hitlist.model.Snipe
 import com.daat.hitlist.model.agoLabel
+import com.daat.hitlist.platform.rememberVoiceShots
 import com.daat.hitlist.ui.AppViewModel
 import com.daat.hitlist.ui.components.ConfirmDialog
 import com.daat.hitlist.ui.components.EmptyState
@@ -50,6 +53,7 @@ import com.daat.hitlist.ui.components.TextEntryDialog
 import com.daat.hitlist.ui.theme.Green
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
 @Composable
 fun FeedScreen(vm: AppViewModel) {
@@ -104,6 +108,8 @@ private fun SnipeCard(snipe: Snipe, now: Long, liked: Boolean, isAdmin: Boolean,
     var reporting by remember { mutableStateOf(false) }
     var blocking by remember { mutableStateOf(false) }
     var removing by remember { mutableStateOf(false) }
+    val voice = rememberVoiceShots()
+    val scope = rememberCoroutineScope()
 
     Panel {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -144,6 +150,12 @@ private fun SnipeCard(snipe: Snipe, now: Long, liked: Boolean, isAdmin: Boolean,
                 )
             }
             Text(snipe.likedBy.size.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            snipe.soundPath?.let { path ->
+                Spacer(Modifier.width(4.dp))
+                TextButton(onClick = { scope.launch { vm.photoUrl(path)?.let(voice::playUrl) } }) {
+                    Text("Play shot sound")
+                }
+            }
             Spacer(Modifier.weight(1f))
             Text("+${snipe.points}", fontWeight = FontWeight.Bold, color = Green)
             Spacer(Modifier.width(4.dp))

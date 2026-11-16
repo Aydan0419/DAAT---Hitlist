@@ -23,6 +23,14 @@ Branch `hitlist-v1`, built against [`HITLIST_SPEC.md`](../HITLIST_SPEC.md).
 - Android and iPhone shells: camera, location, compass, Google sign-in on both, Apple sign-in on iPhone.
 - CI for backend and both apps.
 
+## Shot sounds (new, untested on a phone)
+
+- Record up to three 3-second sounds in Profile; the chosen one plays when you shoot and is attached to your snipes, with a "Play shot sound" button in the feed.
+- Sounds are saved on the phone, so they are lost if the app is reinstalled.
+- Admins can mute a player's shot sound from the group's player list; reporting or removing a snipe covers its sound.
+- It is open to everyone for now (`VoiceShots.FREE_FOR_TESTING`). The $2.99 unlock needs the store accounts and server-side purchase checking before it can be switched on.
+- Not built: a free default sound, and playing the sound inside the "you got sniped" notification.
+
 ## Needs you (cannot be done from code)
 
 1. **Deploy the backend** (README step 1). The Firebase project must be on the Blaze plan.

@@ -76,6 +76,8 @@ export interface MemberDoc {
   snipeDayId: string;
   immuneUntil: number;
   joinedAt: number;
+  /** Set by the group admin: this player's shot sounds are not attached to their snipes. */
+  soundMuted?: boolean;
 }
 
 export interface AssignmentDoc {
@@ -119,6 +121,8 @@ export interface SnipeDoc {
   hunterName: string;
   targetName: string;
   photoPath: string;
+  /** The hunter's recorded shot sound, if they attached one and are not muted in this group. */
+  soundPath?: string | null;
   status: SnipeStatus;
   points: number;
   breakdown: PointsBreakdown | null;

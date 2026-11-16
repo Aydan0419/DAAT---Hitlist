@@ -17,10 +17,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,7 +35,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.daat.hitlist.model.Group
+import com.daat.hitlist.platform.VoiceShots
 import com.daat.hitlist.platform.rememberBackgroundPermissions
+import com.daat.hitlist.platform.rememberMicPermission
+import com.daat.hitlist.platform.rememberVoiceShots
 import com.daat.hitlist.ui.AppViewModel
 import com.daat.hitlist.ui.components.Avatar
 import com.daat.hitlist.ui.components.ConfirmDialog
@@ -39,6 +47,7 @@ import com.daat.hitlist.ui.components.Panel
 import com.daat.hitlist.ui.components.Stat
 import com.daat.hitlist.ui.components.TextEntryDialog
 import com.daat.hitlist.ui.theme.Gold
+import kotlinx.coroutines.delay
 
 private enum class ProfileDialog { None, EditName, Create, Join, SignOut, Delete }
 
@@ -110,6 +119,8 @@ fun ProfileScreen(vm: AppViewModel, onManageGroup: () -> Unit) {
                 ) { Text("Create a group") }
             }
         }
+
+        item(key = "shot-sound") { ShotSoundPanel() }
 
         if (!background.granted) {
             item(key = "background") {
@@ -215,6 +226,103 @@ private fun GroupRow(
         Row {
             if (isAdmin) TextButton(onClick = onManage) { Text("Manage") }
             TextButton(onClick = onLeave) { Text("Leave", color = MaterialTheme.colorScheme.error) }
+        }
+    }
+}
+
+
+/** Record up to three short sounds and pick the one that plays when you snipe someone. */
+@Composable
+private fun ShotSoundPanel() {
+    val voice = rememberVoiceShots()
+    val mic = rememberMicPermission()
+    // The clips live in files, so bump this to re-read them after every change.
+    var version by remember { mutableIntStateOf(0) }
+    var recording by remember { mutableIntStateOf(-1) }
+    var failed by remember { mutableStateOf(false) }
+
+    // Recording stops by itself at the time limit.
+    LaunchedEffect(recording) {
+        if (recording >= 0) {
+            delay(VoiceShots.MAX_MS)
+            voice.stopRecording()
+            recording = -1
+            version++
+        }
+    }
+
+    Panel {
+        Eyebrow("Shot sound", color = Gold)
+        Spacer(Modifier.height(6.dp))
+        Text(
+            "Record up to 3 seconds: say \"pew\", anything. It plays when you take a shot, and your group hears it on your snipes in the feed.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        if (VoiceShots.FREE_FOR_TESTING) {
+            Text(
+                "Free while we test. This will be a one-time unlock.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+
+        key(version) {
+            val active = voice.activeSlot
+            for (slot in 0 until VoiceShots.SLOTS) {
+                val has = voice.hasClip(slot)
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = has && active == slot,
+                        enabled = has,
+                        onClick = { voice.activeSlot = slot; version++ },
+                    )
+                    Text(
+                        when {
+                            recording == slot -> "Recording…"
+                            has -> "Sound ${slot + 1}"
+                            else -> "Empty"
+                        },
+                        modifier = Modifier.weight(1f),
+                        color = if (has || recording == slot) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (recording == slot) {
+                        TextButton(onClick = { voice.stopRecording(); recording = -1; version++ }) { Text("Stop") }
+                    } else {
+                        if (has) {
+                            TextButton(onClick = { voice.play(slot) }, enabled = recording < 0) { Text("Play") }
+                            TextButton(onClick = { voice.delete(slot); version++ }, enabled = recording < 0) {
+                                Text("Delete", color = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                        TextButton(
+                            enabled = recording < 0,
+                            onClick = {
+                                if (!mic.granted) {
+                                    mic.request()
+                                } else if (voice.startRecording(slot)) {
+                                    failed = false
+                                    recording = slot
+                                } else {
+                                    failed = true
+                                }
+                            },
+                        ) { Text(if (has) "Redo" else "Record") }
+                    }
+                }
+            }
+            if (failed) {
+                Text(
+                    "Couldn't start recording. Check that Hitlist is allowed to use the microphone.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("Play out loud when I shoot", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                Switch(checked = voice.playOnShoot, onCheckedChange = { voice.playOnShoot = it; version++ })
+            }
         }
     }
 }

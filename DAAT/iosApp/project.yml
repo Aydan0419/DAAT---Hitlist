@@ -49,6 +49,7 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIBackgroundModes: [remote-notification]
         ITSAppUsesNonExemptEncryption: false
+        NSMicrophoneUsageDescription: Hitlist uses the microphone only when you record a shot sound for your snipes.
         NSCameraUsageDescription: Hitlist uses the camera to take a photo of your target when you snipe them.
         NSLocationWhenInUseUsageDescription: Hitlist checks your location to confirm you are close enough to your target, and to show roughly how close they are. Other players never see where you are.
         NSLocationAlwaysAndWhenInUseUsageDescription: With "Always", Hitlist can confirm a snipe on you while the app is closed. Your location is only checked when someone snipes you or is hunting you, and other players never see it.

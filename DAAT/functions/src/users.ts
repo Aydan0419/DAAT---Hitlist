@@ -59,6 +59,8 @@ async function deleteSnipesInvolving(gid: string, uid: string): Promise<void> {
   for (const doc of [...asHunter.docs, ...asTarget.docs]) {
     const path = doc.get("photoPath") as string;
     if (path) await bucket.file(path).delete({ ignoreNotFound: true }).catch(() => undefined);
+    const sound = doc.get("soundPath") as string | undefined;
+    if (sound) await bucket.file(sound).delete({ ignoreNotFound: true }).catch(() => undefined);
     await db.recursiveDelete(doc.ref);
   }
 }

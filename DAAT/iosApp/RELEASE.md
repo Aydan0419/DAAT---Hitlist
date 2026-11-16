@@ -35,7 +35,7 @@ In App Store Connect, on the app's page:
 
 - Screenshots (6.9-inch iPhone size), description, keywords, support URL.
 - **Privacy policy URL** (required).
-- **App Privacy** answers: precise location, photos, name, user ID. All used for app functionality, linked to the user, not used for tracking. `iosApp/PrivacyInfo.xcprivacy` says the same thing and the two must agree.
+- **App Privacy** answers: precise location, photos, audio (recorded shot sounds), name, user ID. All used for app functionality, linked to the user, not used for tracking. `iosApp/PrivacyInfo.xcprivacy` says the same thing and the two must agree.
 - **Age rating** questionnaire.
 - **Review notes:** a test login, and an explanation that players are in private invite-only groups, nobody can see another player's coordinates, and background location is only used to confirm a snipe. Reviewers look closely at background location and at apps involving photos of other people.
 - Pick the TestFlight build and submit.

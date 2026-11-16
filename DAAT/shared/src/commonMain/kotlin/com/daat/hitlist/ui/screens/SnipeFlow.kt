@@ -30,6 +30,7 @@ import com.daat.hitlist.model.PointsBreakdown
 import com.daat.hitlist.model.SnipeStatus
 import com.daat.hitlist.platform.LocationProvider
 import com.daat.hitlist.platform.SnipeCamera
+import com.daat.hitlist.platform.rememberVoiceShots
 import com.daat.hitlist.ui.AppViewModel
 import com.daat.hitlist.ui.SnipeUi
 import com.daat.hitlist.ui.components.Crosshair
@@ -47,12 +48,18 @@ fun SnipeFlow(vm: AppViewModel, location: LocationProvider, onClose: () -> Unit)
     val scope = rememberCoroutineScope()
     val headings = remember(location) { location.headings() }
     val heading by headings.collectAsState(0.0)
+    val voice = rememberVoiceShots()
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         when (val s = state) {
             SnipeUi.Idle -> SnipeCamera(
                 heading = heading,
-                onCaptured = { photo -> scope.launch { vm.submitSnipe(photo, location.current()) } },
+                onCaptured = { photo ->
+                    val slot = voice.activeSlot
+                    if (slot >= 0 && voice.playOnShoot) voice.play(slot)
+                    val sound = voice.activeClip()
+                    scope.launch { vm.submitSnipe(photo, location.current(), sound) }
+                },
                 onError = vm::snipeFailed,
                 onClose = onClose,
                 modifier = Modifier.fillMaxSize(),

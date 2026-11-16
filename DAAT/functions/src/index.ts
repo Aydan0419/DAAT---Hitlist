@@ -10,6 +10,7 @@ export {
   kickMember,
   leaveGroup,
   regenerateInviteCode,
+  setSoundMuted,
   transferAdmin,
   updateGroup,
 } from "./groups";

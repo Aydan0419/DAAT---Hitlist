@@ -10,6 +10,8 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import platform.AVFAudio.AVAudioSession
+import platform.AVFAudio.requestRecordPermission
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVMediaTypeVideo
@@ -66,4 +68,10 @@ actual fun rememberBackgroundPermissions(): PermissionState = rememberPermission
         if (permissionManager.isAuthorized()) permissionManager.requestAlwaysAuthorization()
         else permissionManager.requestWhenInUseAuthorization()
     },
+)
+
+@Composable
+actual fun rememberMicPermission(): PermissionState = rememberPermission(
+    check = { micGranted() },
+    ask = { AVAudioSession.sharedInstance().requestRecordPermission { } },
 )

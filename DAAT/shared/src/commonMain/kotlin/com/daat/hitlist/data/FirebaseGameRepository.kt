@@ -222,6 +222,7 @@ class FirebaseGameRepository : GameRepository {
         fix: GeoFix,
         headingDeg: Double,
         capturedAt: Long,
+        sound: ByteArray?,
     ): SnipeResult {
         val snipeId = randomId()
         val path = "snipes/$groupId/$uid/$snipeId.jpg"
@@ -231,6 +232,16 @@ class FirebaseGameRepository : GameRepository {
             throw e
         } catch (e: Exception) {
             throw GameException("PHOTO_MISSING", e)
+        }
+        // The shot sound is a nice-to-have: a failed upload must never cost the snipe.
+        val hasSound = sound != null && sound.isNotEmpty() && try {
+            storage.reference.child("snipes/$groupId/$uid/$snipeId.m4a")
+                .putData(sound.toStorageData(), storageMetadata { contentType = "audio/mp4" })
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            false
         }
         return call(
             "submitSnipe",
@@ -243,6 +254,7 @@ class FirebaseGameRepository : GameRepository {
                 "accuracy" to fix.accuracyM,
                 "heading" to headingDeg,
                 "capturedAt" to capturedAt,
+                "hasSound" to hasSound,
             ),
         )
     }
@@ -298,6 +310,9 @@ class FirebaseGameRepository : GameRepository {
 
     override suspend fun kickMember(groupId: String, memberUid: String) =
         run("kickMember", mapOf("groupId" to groupId, "memberUid" to memberUid))
+
+    override suspend fun setSoundMuted(groupId: String, memberUid: String, muted: Boolean) =
+        run("setSoundMuted", mapOf("groupId" to groupId, "memberUid" to memberUid, "muted" to muted))
 
     override suspend fun transferAdmin(groupId: String, memberUid: String) =
         run("transferAdmin", mapOf("groupId" to groupId, "memberUid" to memberUid))
