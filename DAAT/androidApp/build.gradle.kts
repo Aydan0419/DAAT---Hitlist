@@ -20,8 +20,23 @@ android {
         versionCode = 2
         versionName = "1.0.0"
     }
+    buildFeatures {
+        buildConfig = true
+    }
     buildTypes {
+        getByName("debug") {
+            buildConfigField("boolean", "DEMO", "false")
+        }
+        // Demo: every screen with sample players and no Firebase. For showing the app
+        // before the backend is deployed. Same app id, so it replaces the real app.
+        create("demo") {
+            initWith(getByName("debug"))
+            matchingFallbacks += listOf("debug")
+            versionNameSuffix = "-demo"
+            buildConfigField("boolean", "DEMO", "true")
+        }
         getByName("release") {
+            buildConfigField("boolean", "DEMO", "false")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
