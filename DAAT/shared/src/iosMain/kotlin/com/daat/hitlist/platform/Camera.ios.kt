@@ -37,6 +37,7 @@ import platform.UIKit.UINavigationControllerDelegateProtocol
 import platform.UIKit.UIScreen
 import platform.UIKit.UIView
 import platform.UIKit.UIViewController
+import platform.UIKit.accessibilityLabel
 import platform.darwin.NSObject
 
 private const val MAX_EDGE = 1080.0
