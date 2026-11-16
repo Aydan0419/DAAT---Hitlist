@@ -52,3 +52,13 @@ functions/package-lock.json
 # Skills
 skills/
 skills-lock.json
+
+# Kotlin / KMP
+.kotlin/
+**/build/
+*.xcuserstate
+xcuserdata/
+iosApp/Pods/
+
+# Functions build output
+functions/lib/
