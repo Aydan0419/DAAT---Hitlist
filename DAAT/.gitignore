@@ -15,7 +15,6 @@ firebase-debug.log*
 # Node (Functions)
 functions/node_modules/
 functions/npm-debug.log*
-functions/package-lock.json
 
 # Tool-specific/Agent folders (Excluding from main repo)
 .adal/
@@ -52,3 +51,13 @@ functions/package-lock.json
 # Skills
 skills/
 skills-lock.json
+
+# Kotlin / KMP
+.kotlin/
+**/build/
+*.xcuserstate
+xcuserdata/
+iosApp/Pods/
+
+# Functions build output
+functions/lib/

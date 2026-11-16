@@ -1,0 +1,94 @@
+# The Xcode project is generated from this file, so it never has merge conflicts.
+#   brew install xcodegen
+#   cd DAAT/iosApp && xcodegen generate && open Hitlist.xcodeproj
+name: Hitlist
+options:
+  bundleIdPrefix: com.daat
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    # Set this to your Apple Developer team id to run on a real iPhone.
+    DEVELOPMENT_TEAM: ""
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "2"
+    SWIFT_VERSION: "5.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    majorVersion: 11.8.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    majorVersion: 8.0.0
+
+targets:
+  Hitlist:
+    type: application
+    platform: iOS
+    sources:
+      - path: iosApp
+        excludes:
+          - "GoogleService-Info.plist"
+      # Download this from the Firebase console after registering the iOS app (see README).
+      - path: iosApp/GoogleService-Info.plist
+        optional: true
+    info:
+      path: iosApp/Info.plist
+      properties:
+        CFBundleDisplayName: Hitlist
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSRequiresIPhoneOS: true
+        UILaunchScreen: {}
+        UIUserInterfaceStyle: Dark
+        CADisableMinimumFrameDurationOnPhone: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIBackgroundModes: [remote-notification]
+        ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: Hitlist uses the camera to take a photo of your target when you snipe them.
+        NSLocationWhenInUseUsageDescription: Hitlist checks your location to confirm you are close enough to your target, and to show roughly how close they are. Other players never see where you are.
+        NSLocationAlwaysAndWhenInUseUsageDescription: With "Always", Hitlist can confirm a snipe on you while the app is closed. Your location is only checked when someone snipes you or is hunting you, and other players never see it.
+        # Replace with the REVERSED_CLIENT_ID value from GoogleService-Info.plist (needed for Google sign-in).
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [com.googleusercontent.apps.REPLACE_WITH_REVERSED_CLIENT_ID]
+    entitlements:
+      path: iosApp/Hitlist.entitlements
+      properties:
+        aps-environment: development
+        com.apple.developer.applesignin: [Default]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.daat.hitlist
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        FRAMEWORK_SEARCH_PATHS:
+          - $(inherited)
+          - $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+        OTHER_LDFLAGS: [$(inherited), -ObjC, -framework, Shared]
+    dependencies:
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFirestore
+      - package: Firebase
+        product: FirebaseFunctions
+      - package: Firebase
+        product: FirebaseStorage
+      - package: Firebase
+        product: FirebaseMessaging
+      - package: GoogleSignIn
+        product: GoogleSignIn
+    preBuildScripts:
+      - name: Build shared Kotlin framework
+        basedOnDependencyAnalysis: false
+        script: |
+          if [ "YES" = "$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED" ]; then
+            echo "Skipping Gradle build: OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED is YES"
+            exit 0
+          fi
+          cd "$SRCROOT/.."
+          ./gradlew :shared:embedAndSignAppleFrameworkForXcode

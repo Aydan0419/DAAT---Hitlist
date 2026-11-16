@@ -1,0 +1,81 @@
+name: App
+
+on:
+  push:
+    branches: [main, hitlist-v1]
+    paths: ["DAAT/**", "!DAAT/functions/**", ".github/workflows/app.yml"]
+  pull_request:
+    paths: ["DAAT/**", "!DAAT/functions/**"]
+
+concurrency:
+  group: app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android build and tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: DAAT
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Shared code tests
+        run: ./gradlew :shared:testAndroidHostTest --stacktrace
+      - name: Build debug and release APKs
+        run: ./gradlew :androidApp:assembleDebug :androidApp:assembleRelease --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hitlist-debug-apk
+          path: DAAT/androidApp/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+  ios:
+    name: iPhone build
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: DAAT
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Compile shared code for iPhone
+        run: ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 --stacktrace
+      - name: Generate the Xcode project
+        run: |
+          brew install xcodegen
+          cd iosApp
+          # The real file is downloaded from the Firebase console (see README) and
+          # is not in the repo. A placeholder is enough to prove the app compiles.
+          if [ ! -f iosApp/GoogleService-Info.plist ]; then
+            cat > iosApp/GoogleService-Info.plist <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>GOOGLE_APP_ID</key><string>1:000000000000:ios:0000000000000000</string>
+            <key>GCM_SENDER_ID</key><string>000000000000</string>
+            <key>API_KEY</key><string>placeholder</string>
+            <key>PROJECT_ID</key><string>placeholder</string>
+            <key>BUNDLE_ID</key><string>com.daat.hitlist</string>
+          </dict></plist>
+          PLIST
+          fi
+          xcodegen generate
+      - name: Build the iPhone app for the simulator
+        run: |
+          cd iosApp
+          xcodebuild build \
+            -project Hitlist.xcodeproj -scheme Hitlist -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO \
+            -skipPackagePluginValidation | tail -n 200
+          exit ${PIPESTATUS[0]}

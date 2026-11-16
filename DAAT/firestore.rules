@@ -1,0 +1,111 @@
+rules_version = '2';
+
+// Clients may write only: their own profile name/photo, their own location,
+// their own push tokens and block list, likes, and reports.
+// Scores, targets, snipes and group membership are written by Cloud Functions.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(gid) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/groups/$(gid)/members/$(request.auth.uid));
+    }
+
+    function isAdmin(gid) {
+      return signedIn()
+        && get(/databases/$(database)/documents/groups/$(gid)).data.adminId == request.auth.uid;
+    }
+
+    // Public profiles. Created by the completeRegistration function.
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photoUrl'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 40
+        && (request.resource.data.photoUrl == null
+            || (request.resource.data.photoUrl is string && request.resource.data.photoUrl.size() <= 1000));
+
+      match /blocked/{otherUid} {
+        allow read, write: if signedIn() && request.auth.uid == uid;
+      }
+    }
+
+    match /usernames/{name} {
+      allow read, write: if false;
+    }
+
+    // Raw locations: write-only for the owner. Nobody can read them, including the owner.
+    match /locations/{uid} {
+      allow read: if false;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['lat', 'lon', 'accuracy', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['lat', 'lon', 'accuracy', 'updatedAt'])
+        && request.resource.data.lat is number
+        && request.resource.data.lat >= -90 && request.resource.data.lat <= 90
+        && request.resource.data.lon is number
+        && request.resource.data.lon >= -180 && request.resource.data.lon <= 180
+        && request.resource.data.accuracy is number
+        && request.resource.data.accuracy >= 0
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /devices/{uid}/tokens/{token} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /inviteCodes/{code} {
+      allow read, write: if false;
+    }
+
+    match /groups/{gid} {
+      allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
+      allow write: if false;
+
+      match /members/{uid} {
+        allow read: if isMember(gid);
+        allow write: if false;
+      }
+
+      // A player can see only their own target.
+      match /assignments/{hunterUid} {
+        allow read: if signedIn() && request.auth.uid == hunterUid;
+        allow write: if false;
+      }
+
+      match /snipes/{sid} {
+        allow read: if isMember(gid);
+        allow create, delete: if false;
+        // The only client edit: adding or removing your own like.
+        allow update: if isMember(gid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy'])
+          && request.resource.data.likedBy is list
+          && request.resource.data.likedBy.toSet().difference(resource.data.likedBy.toSet())
+               .union(resource.data.likedBy.toSet().difference(request.resource.data.likedBy.toSet()))
+               .hasOnly([request.auth.uid]);
+
+        // Verification evidence holds the hunter's coordinates.
+        match /private/{doc} {
+          allow read, write: if false;
+        }
+      }
+
+      match /reports/{rid} {
+        allow create: if isMember(gid)
+          && request.resource.data.keys().hasOnly(['reporterUid', 'snipeId', 'reportedUid', 'reason', 'createdAt'])
+          && request.resource.data.reporterUid == request.auth.uid
+          && request.resource.data.reason is string
+          && request.resource.data.reason.size() <= 500
+          && request.resource.data.createdAt == request.time;
+        allow read, delete: if isAdmin(gid);
+        allow update: if false;
+      }
+    }
+  }
+}

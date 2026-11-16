@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isMember(gid) {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/groups/$(gid)/members/$(request.auth.uid));
+    }
+
+    // Snipe photos: only the hunter can upload, only group members can view.
+    // Deleting is done by Cloud Functions.
+    match /snipes/{gid}/{uid}/{file} {
+      allow read: if isMember(gid);
+      allow create: if request.auth != null && request.auth.uid == uid
+        && isMember(gid)
+        && file.matches('[A-Za-z0-9_-]+\\.jpg')
+        && request.resource.size <= 2 * 1024 * 1024
+        && request.resource.contentType == 'image/jpeg';
+    }
+
+    match /avatars/{uid}/{file} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && (request.resource == null
+            || (request.resource.size <= 1024 * 1024 && request.resource.contentType.matches('image/.*')));
+    }
+  }
+}

@@ -1,0 +1,33 @@
+name: Backend
+
+on:
+  push:
+    branches: [main, hitlist-v1]
+    paths: ["DAAT/functions/**", "DAAT/*.rules", "DAAT/firebase.json", "DAAT/firestore.indexes.json", ".github/workflows/backend.yml"]
+  pull_request:
+    paths: ["DAAT/functions/**", "DAAT/*.rules", "DAAT/firebase.json", "DAAT/firestore.indexes.json"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: DAAT/functions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: DAAT/functions/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Unit tests
+        run: npm test
+      - name: Rules and game-flow tests (Firebase emulators)
+        run: npm run test:emulator
