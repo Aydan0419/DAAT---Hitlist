@@ -60,7 +60,7 @@ cd DAAT
 
 For Google sign-in on a new machine, add that machine's debug SHA-1 fingerprint to the Android app in the Firebase console (`./gradlew :androidApp:signingReport`).
 
-### 3. iPhone (needs a Mac with Xcode 16+)
+### 3. iPhone (needs a Mac with Xcode 26 or newer)
 
 1. In the Firebase console, add an **iOS app** with bundle id `com.daat.hitlist`. Download `GoogleService-Info.plist` into `DAAT/iosApp/iosApp/`.
 2. In `DAAT/iosApp/project.yml`, replace `com.googleusercontent.apps.REPLACE_WITH_REVERSED_CLIENT_ID` with the `REVERSED_CLIENT_ID` value from that plist, and set `DEVELOPMENT_TEAM` to your Apple team id.
