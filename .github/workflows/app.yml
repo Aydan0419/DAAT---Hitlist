@@ -53,7 +53,23 @@ jobs:
       - name: Generate the Xcode project
         run: |
           brew install xcodegen
-          cd iosApp && xcodegen generate
+          cd iosApp
+          # The real file is downloaded from the Firebase console (see README) and
+          # is not in the repo. A placeholder is enough to prove the app compiles.
+          if [ ! -f iosApp/GoogleService-Info.plist ]; then
+            cat > iosApp/GoogleService-Info.plist <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>GOOGLE_APP_ID</key><string>1:000000000000:ios:0000000000000000</string>
+            <key>GCM_SENDER_ID</key><string>000000000000</string>
+            <key>API_KEY</key><string>placeholder</string>
+            <key>PROJECT_ID</key><string>placeholder</string>
+            <key>BUNDLE_ID</key><string>com.daat.hitlist</string>
+          </dict></plist>
+          PLIST
+          fi
+          xcodegen generate
       - name: Build the iPhone app for the simulator
         run: |
           cd iosApp
